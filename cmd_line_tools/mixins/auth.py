@@ -1,3 +1,5 @@
+import sqlite3
+    
 class LoginMixin(object):
     """Basic login mixin.
 
@@ -36,3 +38,20 @@ class SimpleAuthenticationMixin(object):
 # Can you think two more authentication services?
 # A Json based service and one based on a sqlite3 database?
 # Both are builtin modules in Python, should be easy ;)
+class DbAuthenticationMixin(object):
+    def __init__(self):
+        self.con = sqlite3.connect(":memory:")
+        self.cur = self.con.cursor()
+        self.cur.execute("create table authorized (username, password)")
+
+    def createDb(self,userTuple):
+        for row in userTuple:
+            self.cur.execute("insert into authorized values (?,?)",(row[0],row[1] ))
+        
+    def authenticate(self, username, password):
+       # self.con = sqlite3.connect(":memory:")
+        sql = "select 1 from authorized where username = ? and password=?"
+        c = self.con.cursor()
+        c.execute(sql, (username,password))
+        if c.fetchone():
+            return {'username': username, 'password': password}

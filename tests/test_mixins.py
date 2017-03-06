@@ -21,7 +21,6 @@ class SimpleCommandLineParserMixinTestCase(unittest.TestCase):
             m.parse_arguments()
             self.assertEqual(len(m._arguments), 0)
 
-
 class InputTestCase(unittest.TestCase):
     def test_with_simple_arguments_request(self):
         mixin = InputRequestMixin()
@@ -98,3 +97,30 @@ class AuthenticationMixinsTestCase(unittest.TestCase):
         obj.authenticate.assert_called_once_with('no-user', 'no-pass')
         self.assertFalse(obj.is_authenticated)
         self.assertIsNone(obj.user)
+    
+    def test_authenticate_db_user(self):
+        authenticated_mock = MagicMock(return_value={
+            'username': 'johndoe',
+            'password': 'password'
+        })
+
+        class DummyLoginCommand(LoginMixin,DbAuthenticationMixin):
+            def request_input_data(self, data):
+                if data == 'username':
+                    return 'johndoe'
+                elif data == 'password':
+                    return 'PWD$123'
+
+            authenticate = authenticated_mock
+
+        obj = DummyLoginCommand()
+        user = obj.login()
+
+        self.assertEqual(user, {
+            'username': 'johndoe',
+            'password': 'password'
+        })
+        self.assertEqual(user, obj.user)
+
+        obj.authenticate.assert_called_once_with('johndoe', 'PWD$123')
+        self.assertTrue(obj.is_authenticated)

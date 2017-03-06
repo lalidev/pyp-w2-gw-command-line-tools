@@ -34,3 +34,16 @@ def test_calculator_with_user_input(capsys):
 
     out, err = capsys.readouterr()
     assert out == 'Result: 2\n'
+
+def acct(message):
+    if 'username' in message:
+        return 'admin'
+    if 'password' in message:
+        return 'admin'
+
+def test_db_command(capsys):
+    with patch('six.moves.input', acct) as m:
+        DbPriviledgedArgumentsExampleCommand().main()
+
+    out, err = capsys.readouterr()
+    assert out == 'Welcome admin!\n'

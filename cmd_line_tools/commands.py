@@ -1,11 +1,11 @@
 from .mixins import (
     SimpleCommandLineParserMixin, ArgumentsRequestMixin, StdoutOutputMixin,
-    InputRequestMixin, SimpleAuthenticationMixin,
+    InputRequestMixin, SimpleAuthenticationMixin,DbAuthenticationMixin,
     LoginMixin)
 
 __all__ = [
     'ArgumentCalculatorCommand', 'InputCalculatorCommand',
-    'PriviledgedArgumentsExampleCommand']
+    'PriviledgedArgumentsExampleCommand','DbPriviledgedArgumentsExampleCommand']
 
 
 class BaseCalculatorCommand(object):
@@ -64,6 +64,7 @@ class PriviledgedArgumentsExampleCommand(SimpleCommandLineParserMixin,
                                          InputRequestMixin,
                                          StdoutOutputMixin,
                                          SimpleAuthenticationMixin,
+                                         DbAuthenticationMixin,
                                          LoginMixin):
     AUTHORIZED_USERS = [{
         'username': 'admin',
@@ -74,6 +75,23 @@ class PriviledgedArgumentsExampleCommand(SimpleCommandLineParserMixin,
     }]
 
     def main(self):
+        if self.is_authenticated:
+            username = self.user['username']
+            self.write("Welcome %s!" % username)
+        else:
+            self.write("Not authorized :(")
+
+
+
+class DbPriviledgedArgumentsExampleCommand(SimpleCommandLineParserMixin,
+                                         InputRequestMixin,
+                                         StdoutOutputMixin,
+                                         DbAuthenticationMixin,
+                                         LoginMixin):
+    
+
+    def main(self):
+        self.createDb((('admin','admin'),('rmotr','python')))
         if self.is_authenticated:
             username = self.user['username']
             self.write("Welcome %s!" % username)
